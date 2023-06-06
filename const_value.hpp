@@ -1,5 +1,5 @@
 /**
- * @file constexpr_parameter.hpp
+ * @file const_value.hpp
  * @author Ivan Sobchuk (i.a.sobchuk.1994@gmail.com)
  * @brief Simple template to convert function's parameters from
  * non-type template to constexpr. Supported from C++17 and higher.
@@ -34,40 +34,41 @@
 // Suppoted since C++17 as a last fully-supported standard for gcc and clang
 static_assert((__cplusplus >= 201703L), "Supported only with C++17 and newer!");
 
-// Cast to the real constant variable
-#define to_constexpr(X)                                                                                                                              \
-  meta::ConstexprParameter<X> {}
-
-// Namespace for ConstexprVariable
-namespace meta {
+// Namespace for ConstValue (The meta framework for embedded, chosen to not cross the existing ones)
+namespace iso {
 
 /**
  * @brief Template to convert value to constexpr
  *
- * @tparam tpVal
+ * @tparam param: Value that will be casted to constexpr
  */
-template <const auto variable> struct ConstexprParameter final {
-  static constexpr auto value = variable;
-  struct ConstexprParameterT {
+template <const auto param> struct ConstValue final {
+  static constexpr auto value = param;
+  struct ConstValueT {
     using type = void;
   };
 };
 
-// Concept for C++20 to check type for ConstexprVariable
+// Cast to the real const value
+template <const auto value> inline constexpr auto const_v = ConstValue<value>{};
+// Cast to the real const type
+template <const auto value> using const_t = ConstValue<value>;
+
+// Concept for C++20 to check type for ConstValue
 #ifdef __cpp_concepts
 template <typename T>
-concept constexpr_parameter = requires(T) { typename T::ConstexprParameterT; };
+concept const_value = requires(T) { typename T::ConstValueT; };
 #endif
 
-// Type traits for SFINAE to check type for ConstexprVariable
-template <typename T, typename U = void> struct is_constexpr {
+// Type traits for SFINAE to check type for ConstValue
+template <typename T, typename U = void> struct is_const {
   static constexpr auto value = false;
 };
 
-template <typename T> struct is_constexpr<T, typename T::ConstexprParameterT::type> {
+template <typename T> struct is_const<T, typename T::ConstValueT::type> {
   static constexpr auto value = true;
 };
 
-template <typename T> inline constexpr auto is_constexpr_v = is_constexpr<T>::value;
+template <typename T> inline constexpr auto is_const_v = is_const<T>::value;
 
-} // namespace meta
+} // namespace iso
