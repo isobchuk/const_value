@@ -43,6 +43,7 @@ namespace iso {
  * @tparam param: Value that will be casted to constexpr
  */
 template <const auto param> struct ConstValue final {
+  using type = decltype(param);
   static constexpr auto value = param;
   struct ConstValueT {
     using type = void;
@@ -57,7 +58,11 @@ template <const auto value> using const_t = ConstValue<value>;
 // Concept for C++20 to check type for ConstValue
 #ifdef __cpp_concepts
 template <typename T>
-concept const_value = requires(T) { typename T::ConstValueT; };
+concept const_value = requires(T) {
+  typename T::ConstValueT;
+  T::value;
+  typename T::type;
+};
 #endif
 
 // Type traits for SFINAE to check type for ConstValue
